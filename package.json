@@ -1,0 +1,39 @@
+{
+  "name": "io.pinf.server.smi",
+  "version": "0.0.0",
+  "private": true,
+  "pm": "npm",
+  "dependencies": {
+    "q": "~1.0.0",
+    "glob": "~3.2.9",
+    "fs-extra": "~0.8.1",
+    "requirejs": "~2.1.11",
+    "send": "~0.2.0",
+    "waitfor": "~0.1.3",
+    "smi.cli": "0.x",
+    "deepcopy": "~0.3.3"
+  },
+  "scripts": {
+    "install": "./node_modules/.bin/smi install"
+  },
+  "upstream": {
+    "packages": {
+      "top": [
+        "../../*",
+        "../../../../*"
+      ]
+    }
+  },
+  "mappings": {
+    "smi.cache": "top/smi.cache",
+    "io.pinf.server.www": "top/io.pinf.server.www"
+  },
+  "config": {
+    "smi.cli": {
+      "packagesDirectory": "node_modules"
+    },
+    "pio.deploy.converter": {
+      "name": "nodejs-server"
+    }
+  }
+}
