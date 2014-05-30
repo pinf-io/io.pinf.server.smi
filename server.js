@@ -92,12 +92,12 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 						waitfor(packageId, aspect, function(packageId, aspect, done) {
 							return throttle(done, function(done) {
 								var urlParts = URL.parse(catalog.packages[packageId].aspects[aspect]);
-								var cachePath = catalogPath + "~assets~" + catalog.uuid + "~" + catalog.revision + "/" + packageId + "~" + aspect + "~" + PATH.basename(urlParts.pathname);
+								var cachePath = catalogPath + "~assets~" + catalog.uuid + "/" + packageId + "~" + aspect + "~" + PATH.basename(urlParts.pathname);
 								return fetchUrl(catalog.packages[packageId].aspects[aspect], {}, {
 									cachePath: cachePath
 								}, function (err, response) {
 									if (err) return next(err);
-									catalog.packages[packageId].aspects[aspect] = "http://" + config.config.host + "/catalog/" + catalogName + "~assets/" + packageId + "~" + aspect + "~" + PATH.basename(urlParts.pathname);
+									catalog.packages[packageId].aspects[aspect] = "http://" + config.config.host + "/catalog/" + catalogName + "~assets~" + catalog.uuid + "/" + packageId + "~" + aspect + "~" + PATH.basename(urlParts.pathname);
 									return done();
 								});
 							});
@@ -111,7 +111,7 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 		}
 	}
 
-	app.get(/^\/catalog\/([^\/~]+~assets)\/([^\/]+)$/, function (req, res, next) {
+	app.get(/^\/catalog\/([^\/]+?~assets)~[^\/]+\/([^\/]+)$/, function (req, res, next) {
 		return SEND(req, req.url)
 			.root(cacheBasePath)
 			.on('error', next)
