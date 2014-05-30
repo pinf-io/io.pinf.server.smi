@@ -123,7 +123,7 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 			res.writeHead(404);
 			return res.end();
 		}
-		if (!req.headers['x-auth-code']) {
+		if (!req.headers["x-pio.catalog-key"]) {
 			res.writeHead(400);
 			return res.end("no auth code in request!");
 		}
@@ -134,9 +134,9 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 		}
 		if (
 			!config.config.catalogs[req.params[0]].headers ||
-			!config.config.catalogs[req.params[0]].headers['x-auth-code']
+			!config.config.catalogs[req.params[0]].headers["x-pio.catalog-key"]
 		) {
-			console.error("'headers[x-auth-code]' not configured for catalog '" + req.params[0] + "'");
+			console.error("'headers[x-pio.catalog-key]' not configured for catalog '" + req.params[0] + "'");
 			res.writeHead(403);
 			return res.end();
 		}
@@ -145,10 +145,10 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 			res.writeHead(403);
 			return res.end();
 		}
-		if (config.config.catalogs[req.params[0]].headers['x-auth-code'] !== req.headers['x-auth-code']) {
-			console.error("request auth code '" + req.headers['x-auth-code'] + "' does not match configured auth code");
+		if (config.config.catalogs[req.params[0]].headers["x-pio.catalog-key"] !== req.headers["x-pio.catalog-key"]) {
+			console.error("request auth code '" + req.headers["x-pio.catalog-key"] + "' does not match configured auth code");
 			res.writeHead(403);
-			return res.end("x-auth-code mismatch");
+			return res.end("x-pio.catalog-key mismatch");
 		}
 		return fetchUrl(config.config.catalogs[req.params[0]].uri, req.headers, {
 			cachePath: PATH.join(cacheBasePath, "catalog", req.params[0]),
