@@ -127,30 +127,50 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 			res.writeHead(400);
 			return res.end("no auth code in request!");
 		}
-		if (!config.config.catalogs[req.params[0]]) {
+		function findCatalog(catalogName) {
+			for (var name in config.config.catalogs) {
+				if (/^\//.test(name)) {
+					var re = new RegExp(name.replace(/(^\/|\/$)/g, ""));
+					var m = re.exec(catalogName);
+					if (m) {
+						var catalog = DEEPCOPY(config.config.catalogs[name]);
+						if (typeof m[1] !== "undefined") catalog.uri = catalog.uri.replace(/\$1/g, m[1]);
+						if (typeof m[2] !== "undefined") catalog.uri = catalog.uri.replace(/\$2/g, m[2]);
+						if (typeof m[3] !== "undefined") catalog.uri = catalog.uri.replace(/\$3/g, m[3]);
+						return catalog;
+					}
+				} else
+				if (name === catalogName) {
+					return config.config.catalogs[name];
+				}
+			}
+			return null;
+		}
+		var catalog = findCatalog(req.params[0]);
+		if (!catalog) {
 			console.error("catalog '" + req.params[0] + "' not configured!")
 			res.writeHead(404);
 			return res.end();
 		}
 		if (
-			!config.config.catalogs[req.params[0]].headers ||
-			!config.config.catalogs[req.params[0]].headers["x-pio.catalog-key"]
+			!catalog.headers ||
+			!catalog.headers["x-pio.catalog-key"]
 		) {
 			console.error("'headers[x-pio.catalog-key]' not configured for catalog '" + req.params[0] + "'");
 			res.writeHead(403);
 			return res.end();
 		}
-		if (!config.config.catalogs[req.params[0]].uri) {
+		if (!catalog.uri) {
 			console.error("'uri' not configured for catalog '" + req.params[0] + "'");
 			res.writeHead(403);
 			return res.end();
 		}
-		if (config.config.catalogs[req.params[0]].headers["x-pio.catalog-key"] !== req.headers["x-pio.catalog-key"]) {
+		if (catalog.headers["x-pio.catalog-key"] !== req.headers["x-pio.catalog-key"]) {
 			console.error("request auth code '" + req.headers["x-pio.catalog-key"] + "' does not match configured auth code");
 			res.writeHead(403);
 			return res.end("x-pio.catalog-key mismatch");
 		}
-		return fetchUrl(config.config.catalogs[req.params[0]].uri, req.headers, {
+		return fetchUrl(catalog.uri, req.headers, {
 			cachePath: PATH.join(cacheBasePath, "catalog", req.params[0]),
 			// TODO: Make this configurable.
 			ttl: 15 * 1000	// Don't re-check for 15 seconds.
