@@ -93,13 +93,25 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 							return throttle(done, function(done) {
 								var urlParts = URL.parse(catalog.packages[packageId].aspects[aspect]);
 								var cachePath = catalogPath + "~assets~" + catalog.uuid + "/" + packageId + "~" + aspect.replace(/\[[^\]]+\]$/, "") + "~" + PATH.basename(urlParts.pathname);
-								return fetchUrl(catalog.packages[packageId].aspects[aspect], {}, {
-									cachePath: cachePath
-								}, function (err, response) {
-									if (err) return next(err);
-									catalog.packages[packageId].aspects[aspect] = "http://" + config.config.host + "/catalog/" + catalogName + "~assets~" + catalog.uuid + "/" + packageId + "~" + aspect.replace(/\[[^\]]+\]$/, "") + "~" + PATH.basename(urlParts.pathname);
-									return done();
-								});
+								function tryFetch(attempt) {
+									return fetchUrl(catalog.packages[packageId].aspects[aspect], {}, {
+										cachePath: cachePath
+									}, function (err, response) {
+										if (err) {
+											if (attempt < 5) {
+												console.error("Error while fetching '" + catalog.packages[packageId].aspects[aspect] + "' but trying again shortly:", err.stack);
+												return setTimeout(function() {
+													console.error("Trying fetch '" + catalog.packages[packageId].aspects[aspect] + "' again...");
+													return tryFetch(attempt + 1);
+												}, 3 * 1000);
+											}
+											return done(err);
+										}
+										catalog.packages[packageId].aspects[aspect] = "http://" + config.config.host + "/catalog/" + catalogName + "~assets~" + catalog.uuid + "/" + packageId + "~" + aspect.replace(/\[[^\]]+\]$/, "") + "~" + PATH.basename(urlParts.pathname);
+										return done();
+									});
+								}
+								return tryFetch(1);
 							});
 						});
 					}
