@@ -7,6 +7,7 @@ const SEND = require("send");
 const SMI_CACHE = require("smi.cache");
 const DEEPCOPY = require("deepcopy");
 const WAITFOR = require("waitfor");
+const CRYPTO = require("crypto");
 
 
 var cacheBasePath = PATH.join(process.env.PIO_SERVICE_DATA_BASE_PATH, "cache");
@@ -184,6 +185,7 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 			res.writeHead(403);
 			return res.end("x-pio.catalog-key mismatch");
 		}
+		console.log("catalog.uri", catalog.uri);
 		return fetchUrl(catalog.uri, req.headers, {
 			cachePath: PATH.join(cacheBasePath, "catalog", req.params[0]),
 			// TODO: Make this configurable.
@@ -195,9 +197,12 @@ require("io.pinf.server.www").for(module, __dirname, null, function(app, config)
 				return ensureCatalogAssets(response.cachePath, req.params[0], catalog, function(err, catalog) {
 					if (err) return next(err);
 		    		var payload = JSON.stringify(catalog, null, 4);
+		    		var etag = CRYPTO.createHash("sha1");
+                    etag.update(payload);
 		    		res.writeHead(200, {
 		    			"Content-Type": "application/json",
-		    			"Content-Length": payload.length
+		    			"Content-Length": payload.length,
+		    			"Etag": etag.digest("hex")
 		    		});
 		    		return res.end(payload);
 				});
