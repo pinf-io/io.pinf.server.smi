@@ -38,9 +38,11 @@ function throttle(callback, runner) {
 
 require("io.pinf.server.www").for(module, __dirname, null, function(app, config) {
 
-	ASSERT.equal(typeof config.config, "object");
-	ASSERT.equal(typeof config.config.host, "string");
-	ASSERT.equal(typeof config.config.catalogs, "object");
+	if (
+		!config.config ||
+		!config.config.host ||
+		!config.config.catalogs
+	) return;
 
 	var cache = new SMI_CACHE.UrlProxyCache(cacheBasePath, {
         ttl: 0    // Indefinite by default.
